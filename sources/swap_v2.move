@@ -1,4 +1,4 @@
-module dxlyn::dexlyn_swap {
+module dxlyn::dxlyn_swap {
     use std::signer;
     use std::string::{utf8};
     use aptos_framework::coin::{Self, BurnCapability, MintCapability, Coin};
@@ -7,7 +7,7 @@ module dxlyn::dexlyn_swap {
     use aptos_framework::fungible_asset;
     use aptos_framework::fungible_asset::{Metadata, FungibleStore,MintRef};
     use std::table::{Self,Table};
-    use aptos_framework::object::{Self as Object, Object};
+    use aptos_framework::object::{Self,Object};
     use std::option;
     use std::debug::print;
 
@@ -43,10 +43,10 @@ module dxlyn::dexlyn_swap {
             dxlyn_burn,
         });
 
-        let admin_addr = signer::address_of(admin);
+        // let admin_addr = signer::address_of(admin);
         // Use the same FA object address and metadata as fee_distributer.move
-        let dxlyn_coin_address = Object::create_object_address(&DEV, DXLYN_FA_SEED);
-        let dxlyn_coin_metadata = Object::address_to_object<Metadata>(dxlyn_coin_address);
+        let dxlyn_coin_address = object::create_object_address(&DEV, DXLYN_FA_SEED);
+        let dxlyn_coin_metadata = object::address_to_object<Metadata>(dxlyn_coin_address);
 
         let table = table::new<address, Object<FungibleStore>>();
         move_to(admin, LockedFADxlyn {
@@ -54,10 +54,14 @@ module dxlyn::dexlyn_swap {
             dxlyn_fa_metadata: dxlyn_coin_metadata
         });
     }
+    
+    public entry fun init_module_test(admin: &signer) {
+        init_module(admin);
+    }
 
     // Swap FA to DXLYN (user only, no admin needed)
     public entry fun swap_fa_to_dxlyn(user: &signer, amount: u64) acquires Caps, LockedFADxlyn {
-        let admin_addr = @dxlyn;
+        let admin_addr = @dev;
         let user_addr = signer::address_of(user);
 
         // Ensure DXLYN coin registration
@@ -80,7 +84,7 @@ module dxlyn::dexlyn_swap {
             fungible_asset::deposit(*locked_store, fa_locked);
         } else {
             // Create new locked store using the same FA object pattern
-            let fa_constructor = Object::create_named_object(user, DXLYN_FA_SEED);
+            let fa_constructor = object::create_named_object(user, DXLYN_FA_SEED);
             let locked_store = fungible_asset::create_store(&fa_constructor, locked_fa.dxlyn_fa_metadata);
             fungible_asset::deposit(locked_store, fa_locked);
             table::add(&mut locked_fa.locked, user_addr, locked_store);
@@ -93,7 +97,7 @@ module dxlyn::dexlyn_swap {
 
     // Swap DXLYN to FA (user only)
     public entry fun swap_dxlyn_to_fa(user: &signer, amount: u64) acquires Caps, LockedFADxlyn {
-        let admin_addr = @dxlyn;
+        let admin_addr = @dev;
         let user_addr = signer::address_of(user);
         let caps = borrow_global<Caps>(admin_addr);
         let locked_fa = borrow_global_mut<LockedFADxlyn>(admin_addr);
@@ -103,7 +107,7 @@ module dxlyn::dexlyn_swap {
         let user_locked_store = table::borrow_mut(&mut locked_fa.locked, user_addr);
 
         // Check locked FA balance
-        let locked_balance = primary_fungible_store::balance(Object::object_address(user_locked_store), locked_fa.dxlyn_fa_metadata);
+        let locked_balance = primary_fungible_store::balance(object::object_address(user_locked_store), locked_fa.dxlyn_fa_metadata);
         assert!(locked_balance >= amount, 102);
 
         // Burn DXLYN from user
@@ -119,12 +123,12 @@ module dxlyn::dexlyn_swap {
     }
 
     public fun get_locked_fa(user: address): u64 acquires LockedFADxlyn {
-        let admin_addr = @dxlyn;
+        let admin_addr = @dev;
         if (exists<LockedFADxlyn>(admin_addr)) {
             let locked_fa = borrow_global<LockedFADxlyn>(admin_addr);
             if (table::contains(&locked_fa.locked, user)) {
                 let store = table::borrow(&locked_fa.locked, user);
-                primary_fungible_store::balance(Object::object_address(store), locked_fa.dxlyn_fa_metadata)
+                primary_fungible_store::balance(object::object_address(store), locked_fa.dxlyn_fa_metadata)
             } else {
                 0
             }

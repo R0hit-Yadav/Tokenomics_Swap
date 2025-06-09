@@ -4,8 +4,9 @@ version = "1.0.0"
 authors = []
 
 [addresses]
-dxlyn = "0x1"
+dxlyn = "0xe937e73b679cfda8acba050b8c364b598861e1a0e92bef13b6d60461ec37ad26"
 FACoin = "0x2"
+dev ="0xe937e73b679cfda8acba050b8c364b598861e1a0e92bef13b6d60461ec37ad26"
 
 [dev-addresses]
 

@@ -13,8 +13,6 @@ module dxlyn::dxlyn_swap {
 
     struct DXLYN has store, drop {}
     
-
-    // Use same constants as fee_distributer.move
     const DEV: address = @dev;
 
     const DXLYN_FA_SEED: vector<u8> = b"DXLYN";
@@ -107,7 +105,8 @@ module dxlyn::dxlyn_swap {
         let user_locked_store = table::borrow_mut(&mut locked_fa.locked, user_addr);
 
         // Check locked FA balance
-        let locked_balance = primary_fungible_store::balance(object::object_address(user_locked_store), locked_fa.dxlyn_fa_metadata);
+        
+        let locked_balance = fungible_asset::balance(*user_locked_store);
         assert!(locked_balance >= amount, 102);
 
         // Burn DXLYN from user
@@ -128,7 +127,7 @@ module dxlyn::dxlyn_swap {
             let locked_fa = borrow_global<LockedFADxlyn>(admin_addr);
             if (table::contains(&locked_fa.locked, user)) {
                 let store = table::borrow(&locked_fa.locked, user);
-                primary_fungible_store::balance(object::object_address(store), locked_fa.dxlyn_fa_metadata)
+                fungible_asset::balance(*store)
             } else {
                 0
             }

@@ -18,6 +18,10 @@ module dxlyn::dxlyn_swap_test {
         dxlyn_coin::init_coin(admin); // Create FA (DXLYN) as fungible asset
         dxlyn_swap::init_module_test(admin);
 
+        account::create_account_for_test(@0x1);
+        let aptos_framework_sign = account::create_signer_for_test(@0x1);
+        coin::create_coin_conversion_map(&aptos_framework_sign);
+
         let user_addr = signer::address_of(user);
         let admin_addr = signer::address_of(admin);
         account::create_account_for_test(admin_addr);

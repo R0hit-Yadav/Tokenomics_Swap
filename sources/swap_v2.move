@@ -41,8 +41,7 @@ module dxlyn::dxlyn_swap {
             dxlyn_burn,
         });
 
-        // let admin_addr = signer::address_of(admin);
-        // Use the same FA object address and metadata as fee_distributer.move
+        // Initialize the LockedFADxlyn resource
         let dxlyn_coin_address = object::create_object_address(&DEV, DXLYN_FA_SEED);
         let dxlyn_coin_metadata = object::address_to_object<Metadata>(dxlyn_coin_address);
 
@@ -57,35 +56,35 @@ module dxlyn::dxlyn_swap {
         init_module(admin);
     }
 
-    // Swap FA to DXLYN (user only, no admin needed)
+    // Swap FA to DXLYN 
     public entry fun swap_fa_to_dxlyn(user: &signer, amount: u64) acquires Caps, LockedFADxlyn {
         let admin_addr = @dev;
         let user_addr = signer::address_of(user);
 
-        // Ensure DXLYN coin registration
+        // DXLYN coin registration
         if (!coin::is_account_registered<DXLYN>(user_addr)) {
             coin::register<DXLYN>(user);
         };
         let caps = borrow_global<Caps>(admin_addr);
         let locked_fa = borrow_global_mut<LockedFADxlyn>(admin_addr);
 
-        // Use the FA metadata from the LockedFADxlyn resource
+        // FA metadata from the LockedFADxlyn resource
         primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
 
         // Withdraw FA from user and store in a new FungibleStore object
         let user_fa_store = primary_fungible_store::primary_store(user_addr, locked_fa.dxlyn_fa_metadata);
         let fa_locked = fungible_asset::withdraw(user, user_fa_store, amount);
 
-        if (table::contains(&locked_fa.locked, user_addr)) {
-            // Deposit into existing locked store
-            let locked_store = table::borrow_mut(&mut locked_fa.locked, user_addr);
+        if (locked_fa.locked.contains(user_addr)) {
+            // deposit into existing locked store
+            let locked_store = locked_fa.locked.borrow_mut(user_addr);
             fungible_asset::deposit(*locked_store, fa_locked);
         } else {
             // Create new locked store using the same FA object pattern
             let fa_constructor = object::create_named_object(user, DXLYN_FA_SEED);
             let locked_store = fungible_asset::create_store(&fa_constructor, locked_fa.dxlyn_fa_metadata);
             fungible_asset::deposit(locked_store, fa_locked);
-            table::add(&mut locked_fa.locked, user_addr, locked_store);
+            locked_fa.locked.add(user_addr, locked_store);
         };
 
         // Mint DXLYN to user
@@ -93,7 +92,7 @@ module dxlyn::dxlyn_swap {
         coin::deposit<DXLYN>(user_addr, dxlyn_coins);
     }
 
-    // Swap DXLYN to FA (user only)
+    // Swap DXLYN to FA
     public entry fun swap_dxlyn_to_fa(user: &signer, amount: u64) acquires Caps, LockedFADxlyn {
         let admin_addr = @dev;
         let user_addr = signer::address_of(user);
@@ -101,11 +100,10 @@ module dxlyn::dxlyn_swap {
         let locked_fa = borrow_global_mut<LockedFADxlyn>(admin_addr);
 
         // Check locked FA exists for user
-        assert!(table::contains(&locked_fa.locked, user_addr), 101);
-        let user_locked_store = table::borrow_mut(&mut locked_fa.locked, user_addr);
+        assert!(locked_fa.locked.contains(user_addr), 101);
+        let user_locked_store = locked_fa.locked.borrow_mut(user_addr);
 
         // Check locked FA balance
-        
         let locked_balance = fungible_asset::balance(*user_locked_store);
         assert!(locked_balance >= amount, 102);
 
@@ -125,8 +123,8 @@ module dxlyn::dxlyn_swap {
         let admin_addr = @dev;
         if (exists<LockedFADxlyn>(admin_addr)) {
             let locked_fa = borrow_global<LockedFADxlyn>(admin_addr);
-            if (table::contains(&locked_fa.locked, user)) {
-                let store = table::borrow(&locked_fa.locked, user);
+            if (locked_fa.locked.contains(user)) {
+                let store = locked_fa.locked.borrow(user);
                 fungible_asset::balance(*store)
             } else {
                 0

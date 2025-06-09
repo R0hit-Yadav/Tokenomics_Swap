@@ -12,11 +12,12 @@ module dxlyn::dxlyn_swap_test {
 
     const DEV: address = @dev;
 
+    // Test Cases 
     #[test(admin=@dev, user=@0x123)]
     public fun test_swap_fa_to_dxlyn_and_back(admin: &signer, user: &signer) {
-        // 1. Setup: Initialize coins and swap module
-        dxlyn_coin::init_coin(admin); // Create FA (DXLYN) as fungible asset
-        dxlyn_swap::init_module_test(admin);
+  
+        dxlyn_coin::init_coin(admin); // FA
+        dxlyn_swap::init_module_test(admin);// wDxlyn
 
         account::create_account_for_test(@0x1);
         let aptos_framework_sign = account::create_signer_for_test(@0x1);
@@ -27,7 +28,7 @@ module dxlyn::dxlyn_swap_test {
         account::create_account_for_test(admin_addr);
         account::create_account_for_test(user_addr);
 
-        // 2. Mint 100 FA to user
+        // mint 100 FA to user
         dxlyn_coin::register_and_mint(admin, signer::address_of(user), 100);
         print(&utf8(b"register and mint 100 FA to user"));
 
@@ -36,7 +37,7 @@ module dxlyn::dxlyn_swap_test {
         let fa_balance = primary_fungible_store::balance(user_addr, fa_metadata);
         print(&fa_balance);
 
-        // 3. Swap 40 FA to DXLYN
+        // Swap 40 FA to DXLYN
         print(&utf8(b"Swap 40 FA to DXLYN"));
         dxlyn_swap::swap_fa_to_dxlyn(user, 40);
         print(&utf8(b"After Swap"));
@@ -46,16 +47,16 @@ module dxlyn::dxlyn_swap_test {
         print(&coin::balance<dxlyn_swap::DXLYN>(user_addr));
 
 
-        // 4. Check locked FA balance is 40
+        // check lock fa balance
         let user_addr = signer::address_of(user);
         let locked = dxlyn_swap::get_locked_fa(user_addr);
         assert!(locked == 40, 100);
 
-        // 5. Check user DXLYN coin balance is 40
+        // check user DXLYN coin balance
         let dxlyn_balance = coin::balance<dxlyn_swap::DXLYN>(user_addr);
         assert!(dxlyn_balance == 40, 101);
 
-        // 6. Swap 20 DXLYN back to FA
+        // swap 20 DXLYN back to FA
         print(&utf8(b"Swap 20 DXLYN back to FA"));
         dxlyn_swap::swap_dxlyn_to_fa(user, 20);
         print(&utf8(b"After Swap back"));
@@ -64,15 +65,15 @@ module dxlyn::dxlyn_swap_test {
         print(&utf8(b"DXLYN balance:"));
         print(&coin::balance<dxlyn_swap::DXLYN>(user_addr));
 
-        // 7. Check locked FA balance is now 20
+        //now check new locked FA balance
         let locked2 = dxlyn_swap::get_locked_fa(user_addr);
         assert!(locked2 == 20, 102);
 
-        // 8. Check user DXLYN coin balance is now 20
+        //now check new user DXLYN coin balance
         let dxlyn_balance2 = coin::balance<dxlyn_swap::DXLYN>(user_addr);
         assert!(dxlyn_balance2 == 20, 103);
 
-        // 9. Check user FA balance is now 80 (100 - 40 + 20)
+        //check user primary fungible store balance
         let fa_metadata_addr = object::create_object_address(&DEV, b"DXLYN");
         let fa_metadata = object::address_to_object<Metadata>(fa_metadata_addr);
         let fa_balance = primary_fungible_store::balance(user_addr, fa_metadata);

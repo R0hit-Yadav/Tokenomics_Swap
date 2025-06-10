@@ -1,7 +1,7 @@
 module dxlyn::wdxlyn_coin {
     use std::signer;
     use std::string::utf8;
-    use aptos_framework::coin::{Self, BurnCapability, MintCapability};
+    use supra_framework::coin::{Self, BurnCapability, MintCapability};
 
     struct DXLYN has store, drop {}
 
@@ -34,13 +34,13 @@ module dxlyn::wdxlyn_coin {
         init_module(admin);
     }
 
-    public fun mint_dxlyn(admin: address, amount: u64): aptos_framework::coin::Coin<DXLYN> acquires Caps {
+    public fun mint_dxlyn(admin: address, amount: u64): supra_framework::coin::Coin<DXLYN> acquires Caps {
         let caps = borrow_global<Caps>(admin);
-        aptos_framework::coin::mint<DXLYN>(amount, &caps.mint)
+        supra_framework::coin::mint<DXLYN>(amount, &caps.mint)
     }
 
-    public fun burn_dxlyn(admin: address, coin: aptos_framework::coin::Coin<DXLYN>) acquires Caps {
+    public fun burn_dxlyn(admin: address, coin: supra_framework::coin::Coin<DXLYN>) acquires Caps {
         let caps = borrow_global<Caps>(admin);
-        aptos_framework::coin::burn<DXLYN>(coin, &caps.burn)
+        supra_framework::coin::burn<DXLYN>(coin, &caps.burn)
     }
 }

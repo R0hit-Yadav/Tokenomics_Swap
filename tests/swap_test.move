@@ -1,11 +1,11 @@
 module dxlyn::dxlyn_swap_test {
     use std::signer;
-    use aptos_framework::coin;
-    use aptos_framework::primary_fungible_store;
-    use aptos_framework::object;
-    use aptos_framework::fungible_asset::Metadata;
+    use supra_framework::coin;
+    use supra_framework::primary_fungible_store;
+    use supra_framework::object;
+    use supra_framework::fungible_asset::Metadata;
     use dxlyn::dxlyn_swap;
-    use aptos_framework::account;
+    use supra_framework::account;
     use dxlyn::dxlyn_coin;
     use dxlyn::wdxlyn_coin;
     use std::debug::print;
@@ -21,8 +21,8 @@ module dxlyn::dxlyn_swap_test {
         dxlyn_swap::init_module_test_swap(admin);// wDxlyn
 
         account::create_account_for_test(@0x1);
-        let aptos_framework_sign = account::create_signer_for_test(@0x1);
-        coin::create_coin_conversion_map(&aptos_framework_sign);
+        let supra_framework_sign = account::create_signer_for_test(@0x1);
+        coin::create_coin_conversion_map(&supra_framework_sign);
 
         let user_addr = signer::address_of(user);
         let admin_addr = signer::address_of(admin);

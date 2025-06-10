@@ -2,20 +2,20 @@ module dxlyn::dxlyn_coin {
     use std::signer;
     use std::string::utf8;
 
-    use aptos_framework::coin::{Self, BurnCapability, MintCapability};
-    use aptos_framework::aptos_account;
-    use aptos_framework::timestamp;
+    use supra_framework::coin::{Self, BurnCapability, MintCapability};
+    use supra_framework::supra_account;
+    use supra_framework::timestamp;
 
     #[test_only]
     use std::option;
     #[test_only]
     use std::signer::address_of;
     #[test_only]
-    use aptos_framework::fungible_asset::{Self, Metadata, MintRef};
+    use supra_framework::fungible_asset::{Self, Metadata, MintRef};
     #[test_only]
-    use aptos_framework::object;
+    use supra_framework::object;
     #[test_only]
-    use aptos_framework::primary_fungible_store;
+    use supra_framework::primary_fungible_store;
 
     struct DXLYN {}
 
@@ -49,7 +49,7 @@ module dxlyn::dxlyn_coin {
         let token_admin_addr = signer::address_of(token_admin);
         let caps = borrow_global<Caps<CoinType>>(token_admin_addr);
         let coins = coin::mint<CoinType>(amount, &caps.mint);
-        aptos_account::deposit_coins<CoinType>(acc_addr, coins);
+        supra_account::deposit_coins<CoinType>(acc_addr, coins);
     }
 
 

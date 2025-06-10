@@ -10,9 +10,9 @@ dev ="0xe937e73b679cfda8acba050b8c364b598861e1a0e92bef13b6d60461ec37ad26"
 
 [dev-addresses]
 
-[dependencies.AptosFramework]
-git = "https://github.com/aptos-labs/aptos-framework.git"
-rev = "mainnet"
-subdir = "aptos-framework"
+[dependencies.SupraFramework]
+git = 'https://github.com/Entropy-Foundation/aptos-core.git'
+subdir = 'aptos-move/framework/supra-framework'
+rev = 'aptosvm-v1.16_supra-v0.4.0'
 
 [dev-dependencies]

@@ -3,7 +3,9 @@ module dxlyn::wdxlyn_coin {
     use std::string::utf8;
     use aptos_framework::coin::{Self, BurnCapability, MintCapability};
 
-    struct DXLYN has store, drop {}  // <-- Changed name to match usage
+    struct DXLYN has store, drop {}
+
+    const E_NOT_ADMIN: u64 = 1000;
 
     const DEV: address = @dev;
 
@@ -13,6 +15,7 @@ module dxlyn::wdxlyn_coin {
     }
 
     fun init_module(admin: &signer) {
+        assert!(signer::address_of(admin) == DEV, 1000);
         let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DXLYN>(
             admin,
             utf8(b"wDXLYN Coin"),
@@ -36,7 +39,6 @@ module dxlyn::wdxlyn_coin {
         aptos_framework::coin::mint<DXLYN>(amount, &caps.mint)
     }
 
-    // Public burn function
     public fun burn_dxlyn(admin: address, coin: aptos_framework::coin::Coin<DXLYN>) acquires Caps {
         let caps = borrow_global<Caps>(admin);
         aptos_framework::coin::burn<DXLYN>(coin, &caps.burn)

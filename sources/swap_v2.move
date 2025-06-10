@@ -26,13 +26,17 @@ module dxlyn::dxlyn_swap {
     /// insufficient DXLYN balance
     const E_INSUFFICIENT_DXLYN: u64 = 103;
 
+    /// not admin 
+    const E_NOT_ADMIN: u64 = 1000;
+
     struct LockedFADxlyn has key {
         locked: Table<address, Object<FungibleStore>>,
         dxlyn_fa_metadata: Object<Metadata>
     }
 
-    entry fun init_module(admin: &signer) {
-
+    entry fun init_module(admin: &signer) 
+    {
+        assert!(signer::address_of(admin) == DEV, 1000);
         wdxlyn_coin::init_module_test(admin);
 
         // Initialize the LockedFADxlyn resource

@@ -68,6 +68,9 @@ module dxlyn::dxlyn_swap {
         let caps = borrow_global<Caps>(admin_addr);
         let locked_fa = borrow_global_mut<LockedFADxlyn>(admin_addr);
 
+        // check FA balance of user 
+        assert!(primary_fungible_store::balance(user_addr, locked_fa.dxlyn_fa_metadata) >= amount, 100);
+
         // FA metadata from the LockedFADxlyn resource
         primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
 
@@ -85,6 +88,11 @@ module dxlyn::dxlyn_swap {
             let locked_store = fungible_asset::create_store(&fa_constructor, locked_fa.dxlyn_fa_metadata);
             fungible_asset::deposit(locked_store, fa_locked);
             locked_fa.locked.add(user_addr, locked_store);
+
+            // primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
+            // let new_store = primary_fungible_store::primary_store(user_addr, locked_fa.dxlyn_fa_metadata);
+            // fungible_asset::deposit(new_store, fa_locked);
+            // locked_fa.locked.add(user_addr, new_store);
         };
 
         // Mint DXLYN to user
@@ -107,6 +115,9 @@ module dxlyn::dxlyn_swap {
         let locked_balance = fungible_asset::balance(*user_locked_store);
         assert!(locked_balance >= amount, 102);
 
+        // check user has enough DXLYN
+        assert!(coin::balance<DXLYN>(user_addr) >= amount, 103);
+        
         // Burn DXLYN from user
         let dxlyn = coin::withdraw<DXLYN>(user, amount);
         coin::burn(dxlyn, &caps.dxlyn_burn);
@@ -119,6 +130,7 @@ module dxlyn::dxlyn_swap {
         fungible_asset::deposit(user_fa_store, fa_to_return);
     }
 
+    #[view]
     public fun get_locked_fa(user: address): u64 acquires LockedFADxlyn {
         let admin_addr = @dev;
         if (exists<LockedFADxlyn>(admin_addr)) {

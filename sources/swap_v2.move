@@ -10,6 +10,7 @@ module dxlyn::dxlyn_swap {
     use aptos_framework::object::{Self,Object};
     use std::option;
     use std::debug::print;
+    use aptos_framework::event;
     use dxlyn::wdxlyn_coin;
 
     
@@ -29,9 +30,16 @@ module dxlyn::dxlyn_swap {
     /// not admin 
     const E_NOT_ADMIN: u64 = 1000;
 
+    #[event]
+    struct SwapEvent has store, drop, copy {
+        user: address,
+        amount: u64,
+        direction: u8, // 0 = FA->DXLYN, 1 = DXLYN->FA
+    }
+
     struct LockedFADxlyn has key {
         locked: Table<address, Object<FungibleStore>>,
-        dxlyn_fa_metadata: Object<Metadata>
+        dxlyn_fa_metadata: Object<Metadata>,
     }
 
     entry fun init_module(admin: &signer) 
@@ -46,7 +54,7 @@ module dxlyn::dxlyn_swap {
         let table = table::new<address, Object<FungibleStore>>();
         move_to(admin, LockedFADxlyn {
             locked: table,
-            dxlyn_fa_metadata: dxlyn_coin_metadata
+            dxlyn_fa_metadata: dxlyn_coin_metadata,
         });
     }
     
@@ -96,6 +104,13 @@ module dxlyn::dxlyn_swap {
         // Mint DXLYN to user
         let dxlyn_coins = wdxlyn_coin::mint_dxlyn(admin_addr, amount);
         coin::deposit<wdxlyn_coin::DXLYN>(user_addr, dxlyn_coins);
+
+        // Emit swap event
+        event::emit(SwapEvent {
+            user: user_addr,
+            amount,
+            direction: 0,
+        });
     }
 
     // Swap DXLYN to FA
@@ -125,6 +140,13 @@ module dxlyn::dxlyn_swap {
         // Deposit FA back to user's primary store
         let user_fa_store = primary_fungible_store::primary_store(user_addr, locked_fa.dxlyn_fa_metadata);
         fungible_asset::deposit(user_fa_store, fa_to_return);
+
+        // Emit swap event
+        event::emit(SwapEvent {
+            user: user_addr,
+            amount,
+            direction: 1,
+        });
     }
 
     #[view]

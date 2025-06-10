@@ -15,7 +15,7 @@ module dxlyn::wdxlyn_coin {
         burn: BurnCapability<DXLYN>,
     }
 
-    entry fun init_module(admin: &signer) {
+    fun init_module(admin: &signer) {
         assert!(signer::address_of(admin) == DEV, 1000);
         let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DXLYN>(
             admin,

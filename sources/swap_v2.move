@@ -45,7 +45,7 @@ module dxlyn::dxlyn_swap {
     entry fun init_module(admin: &signer) 
     {
         assert!(signer::address_of(admin) == DEV, 1000);
-        wdxlyn_coin::init_module_test(admin);
+        wdxlyn_coin::init_module_wdxlyn(admin);
 
         // Initialize the LockedFADxlyn resource
         let dxlyn_coin_address = object::create_object_address(&DEV, DXLYN_FA_SEED);
@@ -58,6 +58,7 @@ module dxlyn::dxlyn_swap {
         });
     }
     
+    #[test_only]
     public entry fun init_module_test_swap(admin: &signer) {
         init_module(admin);
     }

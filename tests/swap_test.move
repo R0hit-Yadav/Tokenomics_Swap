@@ -7,6 +7,7 @@ module dxlyn::dxlyn_swap_test {
     use dxlyn::dxlyn_swap;
     use aptos_framework::account;
     use dxlyn::dxlyn_coin;
+    use dxlyn::wdxlyn_coin;
     use std::debug::print;
     use std::string::{utf8};
 
@@ -17,7 +18,7 @@ module dxlyn::dxlyn_swap_test {
     public fun test_swap_fa_to_dxlyn_and_back(admin: &signer, user: &signer) {
   
         dxlyn_coin::init_coin(admin); // FA
-        dxlyn_swap::init_module_test(admin);// wDxlyn
+        dxlyn_swap::init_module_test_swap(admin);// wDxlyn
 
         account::create_account_for_test(@0x1);
         let aptos_framework_sign = account::create_signer_for_test(@0x1);
@@ -44,7 +45,7 @@ module dxlyn::dxlyn_swap_test {
         print(&utf8(b"Locked FA:"));
         print(&dxlyn_swap::get_locked_fa(user_addr));
         print(&utf8(b"DXLYN balance:"));
-        print(&coin::balance<dxlyn_swap::DXLYN>(user_addr));
+        print(&coin::balance<wdxlyn_coin::DXLYN>(user_addr));
 
 
         // check lock fa balance
@@ -53,7 +54,7 @@ module dxlyn::dxlyn_swap_test {
         assert!(locked == 40, 100);
 
         // check user DXLYN coin balance
-        let dxlyn_balance = coin::balance<dxlyn_swap::DXLYN>(user_addr);
+        let dxlyn_balance = coin::balance<wdxlyn_coin::DXLYN>(user_addr);
         assert!(dxlyn_balance == 40, 101);
 
         // swap 20 DXLYN back to FA
@@ -63,14 +64,14 @@ module dxlyn::dxlyn_swap_test {
         print(&utf8(b"Locked FA:"));
         print(&dxlyn_swap::get_locked_fa(user_addr));
         print(&utf8(b"DXLYN balance:"));
-        print(&coin::balance<dxlyn_swap::DXLYN>(user_addr));
+        print(&coin::balance<wdxlyn_coin::DXLYN>(user_addr));
 
         //now check new locked FA balance
         let locked2 = dxlyn_swap::get_locked_fa(user_addr);
         assert!(locked2 == 20, 102);
 
         //now check new user DXLYN coin balance
-        let dxlyn_balance2 = coin::balance<dxlyn_swap::DXLYN>(user_addr);
+        let dxlyn_balance2 = coin::balance<wdxlyn_coin::DXLYN>(user_addr);
         assert!(dxlyn_balance2 == 20, 103);
 
         //check user primary fungible store balance
@@ -83,7 +84,7 @@ module dxlyn::dxlyn_swap_test {
     #[test(admin=@dev, user1=@0x123, user2=@0x456)]
     public fun test_swap_fa_to_dxlyn_multiple_users(admin: &signer, user1: &signer, user2: &signer) {
         dxlyn_coin::init_coin(admin);
-        dxlyn_swap::init_module_test(admin);
+        dxlyn_swap::init_module_test_swap(admin);
 
         let user_addr1 = signer::address_of(user1);
         let user_addr2 = signer::address_of(user2);
@@ -117,16 +118,16 @@ module dxlyn::dxlyn_swap_test {
         print(&utf8(b"after swap locked FA and DXLYN balance"));
         print(&dxlyn_swap::get_locked_fa(signer::address_of(user1)));
         print(&dxlyn_swap::get_locked_fa(signer::address_of(user2)));
-        print(&coin::balance<dxlyn_swap::DXLYN>(signer::address_of(user1)));
-        print(&coin::balance<dxlyn_swap::DXLYN>(signer::address_of(user2)));
+        print(&coin::balance<wdxlyn_coin::DXLYN>(signer::address_of(user1)));
+        print(&coin::balance<wdxlyn_coin::DXLYN>(signer::address_of(user2)));
 
         let locked1 = dxlyn_swap::get_locked_fa(signer::address_of(user1));
         let locked2 = dxlyn_swap::get_locked_fa(signer::address_of(user2));
         assert!(locked1 == 30, 200);
         assert!(locked2 == 50, 201);
 
-        let dxlyn1 = coin::balance<dxlyn_swap::DXLYN>(signer::address_of(user1));
-        let dxlyn2 = coin::balance<dxlyn_swap::DXLYN>(signer::address_of(user2));
+        let dxlyn1 = coin::balance<wdxlyn_coin::DXLYN>(signer::address_of(user1));
+        let dxlyn2 = coin::balance<wdxlyn_coin::DXLYN>(signer::address_of(user2));
         assert!(dxlyn1 == 30, 202);
         assert!(dxlyn2 == 50, 203);
     }

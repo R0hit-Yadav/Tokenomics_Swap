@@ -1,38 +1,44 @@
-// module dxlyn::wdxlyn_coin {
-//     use std::signer;
-//     use std::string::utf8;
-//     use aptos_framework::coin::{Self, BurnCapability, MintCapability};
+module dxlyn::wdxlyn_coin {
+    use std::signer;
+    use std::string::utf8;
+    use aptos_framework::coin::{Self, BurnCapability, MintCapability};
 
-//     struct DXLYN has store, drop {}  // <-- Changed name to match usage
+    struct DXLYN has store, drop {}  // <-- Changed name to match usage
 
-//     const DEV: address = @dev;
+    const DEV: address = @dev;
 
-//     struct Caps has key {
-//         mint: MintCapability<DXLYN>,
-//         burn: BurnCapability<DXLYN>,
-//     }
+    struct Caps has key {
+        mint: MintCapability<DXLYN>,
+        burn: BurnCapability<DXLYN>,
+    }
 
-//     public fun init_module(admin: &signer) {
-//         let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DXLYN>(
-//             admin,
-//             utf8(b"wDXLYN Coin"),
-//             utf8(b"wDXLYN"),
-//             8,
-//             true
-//         );
-//         coin::destroy_freeze_cap(freeze_cap);
-//         move_to(admin, Caps {
-//             mint: mint_cap,
-//             burn: burn_cap
-//         });
-//     }
+    fun init_module(admin: &signer) {
+        let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DXLYN>(
+            admin,
+            utf8(b"wDXLYN Coin"),
+            utf8(b"wDXLYN"),
+            8,
+            true
+        );
+        coin::destroy_freeze_cap(freeze_cap);
+        move_to(admin, Caps {
+            mint: mint_cap,
+            burn: burn_cap
+        });
+    }
 
-//     // Return references instead of moving capabilities
-//     public fun borrow_mint_cap(admin: &signer): &MintCapability<DXLYN> acquires Caps {
-//         &borrow_global<Caps>(signer::address_of(admin)).mint
-//     }
+    public fun init_module_test(admin: &signer) {
+        init_module(admin);
+    }
 
-//     public fun borrow_burn_cap(admin: &signer): &BurnCapability<DXLYN> acquires Caps {
-//         &borrow_global<Caps>(signer::address_of(admin)).burn
-//     }
-// }
+    public fun mint_dxlyn(admin: address, amount: u64): aptos_framework::coin::Coin<DXLYN> acquires Caps {
+        let caps = borrow_global<Caps>(admin);
+        aptos_framework::coin::mint<DXLYN>(amount, &caps.mint)
+    }
+
+    // Public burn function
+    public fun burn_dxlyn(admin: address, coin: aptos_framework::coin::Coin<DXLYN>) acquires Caps {
+        let caps = borrow_global<Caps>(admin);
+        aptos_framework::coin::burn<DXLYN>(coin, &caps.burn)
+    }
+}

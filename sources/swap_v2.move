@@ -16,17 +16,17 @@ module dxlyn::dxlyn_swap {
     const DXLYN_FA_SEED: vector<u8> = b"DXLYN";
 
     /// not admin 
-    const ERROR_NOT_ADMIN: u64 = 100;
+    const ERROR_NOT_ADMIN: u64 = 0x1;
     /// insufficient FA balance
-    const ERROR_INSUFFICIENT_FA_BALANCE: u64 = 101;
+    const ERROR_INSUFFICIENT_FA_BALANCE: u64 = 0x2;
     /// NO locked FA for user
-    const ERROR_NO_LOCKED_FA: u64 = 102;
+    const ERROR_NO_LOCKED_FA: u64 = 0x3;
     /// insufficient locked FA balance
-    const ERROR_INSUFFICIENT_LOCKED_FA: u64 = 103;
+    const ERROR_INSUFFICIENT_LOCKED_FA: u64 = 0x4;
     /// insufficient DXLYN balance
-    const ERROR_INSUFFICIENT_DXLYN: u64 = 104;
+    const ERROR_INSUFFICIENT_DXLYN: u64 = 0x5;
     /// already initialized
-    const ERROR_ALREADY_INITIALIZED: u64 = 105;
+    const ERROR_ALREADY_INITIALIZED: u64 = 0x6;
 
 
     #[event]

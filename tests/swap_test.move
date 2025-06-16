@@ -83,6 +83,7 @@ module dxlyn::dxlyn_swap_test {
 
     #[test(admin=@dev, user1=@0x123, user2=@0x456)]
     public fun test_swap_fa_to_dxlyn_multiple_users(admin: &signer, user1: &signer, user2: &signer) {
+        print(&utf8(b"Test swap FA to DXLYN for multiple users"));
         dxlyn_coin::init_coin(admin);
         dxlyn_swap::init_module_test_swap(admin);
 
@@ -130,5 +131,101 @@ module dxlyn::dxlyn_swap_test {
         let dxlyn2 = coin::balance<wdxlyn_coin::DXLYN>(signer::address_of(user2));
         assert!(dxlyn1 == 30, 202);
         assert!(dxlyn2 == 50, 203);
+    }
+
+    #[test(admin = @dev, user = @0x123)]
+    #[expected_failure]
+    fun test_swap_fa_to_dxlyn_insufficient_balance(admin: &signer, user: &signer) {
+        print(&utf8(b"Test swap FA to DXLYN with insufficient balance"));
+        dxlyn_coin::init_coin(admin);
+        dxlyn_swap::init_module_test_swap(admin);
+
+        let user_addr = signer::address_of(user);
+        let admin_addr = signer::address_of(admin);
+        account::create_account_for_test(admin_addr);
+        account::create_account_for_test(user_addr);
+        
+        // Mint small amount
+        print(&utf8(b"Mint 100 FA to user"));
+        dxlyn_coin::register_and_mint(admin,user_addr, 100);
+
+        print(&utf8(b"Balance before swap:"));
+        let fa_metadata = object::address_to_object<Metadata>(object::create_object_address(&DEV, b"DXLYN"));
+        let fa_balance = primary_fungible_store::balance(user_addr, fa_metadata);
+        print(&fa_balance);
+
+        print(&utf8(b"Try to swap 200 FA to DXLYN"));
+        // Try to swap more than balance
+        dxlyn_swap::swap_fa_to_dxlyn(user, 200);
+    }
+
+    #[test(admin = @dev, user = @0x123)]
+    #[expected_failure]
+    fun test_swap_dxlyn_to_fa_no_locked(admin: &signer, user: &signer) {
+        print(&utf8(b"Test swap DXLYN to FA without locked FA"));
+        dxlyn_coin::init_coin(admin);
+        dxlyn_swap::init_module_test_swap(admin);
+
+        let user_addr = signer::address_of(user);
+        let admin_addr = signer::address_of(admin);
+
+        account::create_account_for_test(admin_addr);
+        account::create_account_for_test(user_addr);
+        
+        print(&utf8(b"swap 100 DXLYN to FA without locked FA"));
+        let fa_metadata = object::address_to_object<Metadata>(object::create_object_address(&DEV, b"DXLYN"));
+        let fa_balance = primary_fungible_store::balance(user_addr, fa_metadata);
+        print(&fa_balance);
+        // Try to swap back without having swapped first
+        dxlyn_swap::swap_dxlyn_to_fa(user, 100);
+    }
+
+    #[test(admin = @dev, user = @0x123)]
+    fun test_swap_full_cycle(admin: &signer, user: &signer) {
+        print(&utf8(b"Test full swap cycle: FA to DXLYN and back"));
+        dxlyn_coin::init_coin(admin);
+        dxlyn_swap::init_module_test_swap(admin);
+
+        let user_addr = signer::address_of(user);
+        let admin_addr = signer::address_of(admin);
+        account::create_account_for_test(admin_addr);
+        account::create_account_for_test(user_addr);
+        
+        print(&utf8(b"Mint 1000 FA to user"));
+        // Mint FA to user
+        dxlyn_coin::register_and_mint(admin, user_addr, 1000);
+
+        let fa_metadata = object::address_to_object<Metadata>(object::create_object_address(&DEV, b"DXLYN"));
+        let fa_balance = primary_fungible_store::balance(user_addr, fa_metadata);
+        print(&fa_balance);
+        
+        print(&utf8(b"Swap 1000 FA to DXLYN"));
+        // Swap FA to DXLYN
+        dxlyn_swap::swap_fa_to_dxlyn(user, 1000);
+        
+        // Verify all FA is locked
+        print(&utf8(b"After Swap"));
+        print(&utf8(b"Locked FA:"));
+        print(&dxlyn_swap::get_locked_fa(user_addr));
+        print(&utf8(b"DXLYN balance:"));
+        print(&coin::balance<wdxlyn_coin::DXLYN>(user_addr));
+
+        assert!(dxlyn_coin::get_user_dxlyn_balance(user_addr) == 0, 0);
+        assert!(dxlyn_swap::get_locked_fa(user_addr) == 1000, 1);
+        assert!(coin::balance<wdxlyn_coin::DXLYN>(user_addr) == 1000, 2);
+        
+        // Swap back DXLYN to FA
+        print(&utf8(b"Swap back 1000 DXLYN to FA"));
+        dxlyn_swap::swap_dxlyn_to_fa(user, 1000);
+        
+        print(&utf8(b"After Swap back"));
+        print(&utf8(b"Locked FA:"));
+        print(&dxlyn_swap::get_locked_fa(user_addr));
+        print(&utf8(b"DXLYN balance:"));
+        print(&coin::balance<wdxlyn_coin::DXLYN>(user_addr));
+        // Verify all is returned
+        assert!(dxlyn_coin::get_user_dxlyn_balance(user_addr) == 1000, 3);
+        assert!(dxlyn_swap::get_locked_fa(user_addr) == 0, 4);
+        assert!(coin::balance<wdxlyn_coin::DXLYN>(user_addr) == 0, 5);
     }
 }

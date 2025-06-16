@@ -1,15 +1,12 @@
 module dxlyn::dxlyn_swap {
     use std::signer;
-    use std::string::{utf8};
-    use supra_framework::coin::{Self, BurnCapability, MintCapability, Coin};
-    use supra_framework::account;
+    use std::string;
+    use supra_framework::coin;
     use supra_framework::primary_fungible_store;
     use supra_framework::fungible_asset;
-    use supra_framework::fungible_asset::{Metadata, FungibleStore,MintRef};
+    use supra_framework::fungible_asset::{Metadata, FungibleStore};
     use std::table::{Self,Table};
     use supra_framework::object::{Self,Object};
-    use std::option;
-    use std::debug::print;
     use supra_framework::event;
     use dxlyn::wdxlyn_coin;
 
@@ -91,6 +88,7 @@ module dxlyn::dxlyn_swap {
             let locked_store = table::borrow_mut(&mut locked_fa.locked, user_addr);
             fungible_asset::deposit(*locked_store, fa_locked);
         } else {
+
             // Create new locked store using the same FA object pattern
             let fa_constructor = object::create_named_object(user, DXLYN_FA_SEED);
             let locked_store = fungible_asset::create_store(&fa_constructor, locked_fa.dxlyn_fa_metadata);
@@ -99,9 +97,9 @@ module dxlyn::dxlyn_swap {
 
 
             // primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
-            // let new_store = primary_fungible_store::primary_store(user_addr, locked_fa.dxlyn_fa_metadata);
+            // let new_store = primary_fungible_store::create_primary_store(user_addr, locked_fa.dxlyn_fa_metadata);
             // fungible_asset::deposit(new_store, fa_locked);
-            // locked_fa.locked.add(user_addr, new_store);
+            // table::add(&mut locked_fa.locked, user_addr, new_store);
         };
 
         // Mint DXLYN to user

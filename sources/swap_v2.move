@@ -44,7 +44,8 @@ module dxlyn::dxlyn_swap {
 
     fun init_module(admin: &signer) 
     {
-        assert!(signer::address_of(admin) == DEV, 1000);
+        assert!(signer::address_of(admin) == DEV, E_NOT_ADMIN);
+        
         wdxlyn_coin::init_module_wdxlyn(admin);
 
         // Initialize the LockedFADxlyn resource
@@ -78,11 +79,8 @@ module dxlyn::dxlyn_swap {
         // check FA balance of user 
         assert!(primary_fungible_store::balance(user_addr, locked_fa.dxlyn_fa_metadata) >= amount, E_INSUFFICIENT_FA_BALANCE);
 
-        // FA metadata from the LockedFADxlyn resource
-        primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
-
         // Withdraw FA from user and store in a new FungibleStore object
-        let user_fa_store = primary_fungible_store::primary_store(user_addr, locked_fa.dxlyn_fa_metadata);
+        let user_fa_store = primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
         let fa_locked = fungible_asset::withdraw(user, user_fa_store, amount);
 
         if (table::contains(&locked_fa.locked, user_addr)) {
@@ -95,6 +93,7 @@ module dxlyn::dxlyn_swap {
             let locked_store = fungible_asset::create_store(&fa_constructor, locked_fa.dxlyn_fa_metadata);
             fungible_asset::deposit(locked_store, fa_locked);
             table::add(&mut locked_fa.locked, user_addr, locked_store);
+
 
             // primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
             // let new_store = primary_fungible_store::primary_store(user_addr, locked_fa.dxlyn_fa_metadata);

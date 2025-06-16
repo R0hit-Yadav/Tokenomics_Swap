@@ -16,7 +16,7 @@ module dxlyn::wdxlyn_coin {
     }
 
     fun init_module(admin: &signer) {
-        assert!(signer::address_of(admin) == DEV, 1000);
+        assert!(signer::address_of(admin) == DEV, E_NOT_ADMIN);
         let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DXLYN>(
             admin,
             utf8(b"wDXLYN Coin"),

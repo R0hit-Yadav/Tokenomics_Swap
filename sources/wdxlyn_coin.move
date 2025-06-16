@@ -6,7 +6,7 @@ module dxlyn::wdxlyn_coin {
 
     struct DXLYN has store, drop {}
 
-    const E_NOT_ADMIN: u64 = 1000;
+    const ERROR_NOT_ADMIN: u64 = 1000;
 
     const DEV: address = @dev;
 
@@ -16,7 +16,7 @@ module dxlyn::wdxlyn_coin {
     }
 
     fun init_module(admin: &signer) {
-        assert!(signer::address_of(admin) == DEV, E_NOT_ADMIN);
+        assert!(signer::address_of(admin) == DEV, ERROR_NOT_ADMIN);
         let (burn_cap, freeze_cap, mint_cap) = coin::initialize<DXLYN>(
             admin,
             utf8(b"wDXLYN Coin"),

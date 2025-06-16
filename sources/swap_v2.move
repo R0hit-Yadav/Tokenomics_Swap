@@ -19,16 +19,18 @@ module dxlyn::dxlyn_swap {
     const DXLYN_FA_SEED: vector<u8> = b"DXLYN";
 
     /// insufficient FA balance
-    const E_INSUFFICIENT_FA_BALANCE: u64 = 100;
+    const ERROR_INSUFFICIENT_FA_BALANCE: u64 = 100;
     /// NO locked FA for user
-    const E_NO_LOCKED_FA: u64 = 101;
+    const ERROR_NO_LOCKED_FA: u64 = 101;
     /// insufficient locked FA balance
-    const E_INSUFFICIENT_LOCKED_FA: u64 = 102;
+    const ERROR_INSUFFICIENT_LOCKED_FA: u64 = 102;
     /// insufficient DXLYN balance
-    const E_INSUFFICIENT_DXLYN: u64 = 103;
+    const ERROR_INSUFFICIENT_DXLYN: u64 = 103;
+    /// already initialized
+    const ERROR_ALREADY_INITIALIZED: u64 = 104;
 
     /// not admin 
-    const E_NOT_ADMIN: u64 = 1000;
+    const ERROR_NOT_ADMIN: u64 = 1000;
 
     #[event]
     struct SwapEvent has store, drop, copy {
@@ -44,7 +46,8 @@ module dxlyn::dxlyn_swap {
 
     fun init_module(admin: &signer) 
     {
-        assert!(signer::address_of(admin) == DEV, E_NOT_ADMIN);
+        assert!(signer::address_of(admin) == DEV, ERROR_NOT_ADMIN);
+        assert!(!exists<LockedFADxlyn>(signer::address_of(admin)), ERROR_ALREADY_INITIALIZED);
         
         wdxlyn_coin::init_module_wdxlyn(admin);
 
@@ -77,7 +80,7 @@ module dxlyn::dxlyn_swap {
         let locked_fa = borrow_global_mut<LockedFADxlyn>(admin_addr);
 
         // check FA balance of user 
-        assert!(primary_fungible_store::balance(user_addr, locked_fa.dxlyn_fa_metadata) >= amount, E_INSUFFICIENT_FA_BALANCE);
+        assert!(primary_fungible_store::balance(user_addr, locked_fa.dxlyn_fa_metadata) >= amount, ERROR_INSUFFICIENT_FA_BALANCE);
 
         // Withdraw FA from user and store in a new FungibleStore object
         let user_fa_store = primary_fungible_store::ensure_primary_store_exists(user_addr, locked_fa.dxlyn_fa_metadata);
@@ -120,15 +123,15 @@ module dxlyn::dxlyn_swap {
         let locked_fa = borrow_global_mut<LockedFADxlyn>(admin_addr);
 
         // Check locked FA exists for user
-        assert!(table::contains(&locked_fa.locked, user_addr), E_NO_LOCKED_FA);
+        assert!(table::contains(&locked_fa.locked, user_addr), ERROR_NO_LOCKED_FA);
         let user_locked_store = table::borrow_mut(&mut locked_fa.locked, user_addr);
 
         // Check locked FA balance
         let locked_balance = fungible_asset::balance(*user_locked_store);
-        assert!(locked_balance >= amount, E_INSUFFICIENT_LOCKED_FA);
+        assert!(locked_balance >= amount, ERROR_INSUFFICIENT_LOCKED_FA);
 
         // check user has enough DXLYN
-        assert!(coin::balance<wdxlyn_coin::DXLYN>(user_addr) >= amount, E_INSUFFICIENT_DXLYN);
+        assert!(coin::balance<wdxlyn_coin::DXLYN>(user_addr) >= amount, ERROR_INSUFFICIENT_DXLYN);
         
         // Burn DXLYN from user
         let dxlyn = coin::withdraw<wdxlyn_coin::DXLYN>(user, amount);
@@ -136,6 +139,11 @@ module dxlyn::dxlyn_swap {
 
         // Withdraw FA from locked store
         let fa_to_return = fungible_asset::withdraw(user, *user_locked_store, amount);
+
+        if (fungible_asset::balance(*user_locked_store) == 0) 
+        {
+            table::remove(&mut locked_fa.locked, user_addr);
+        };
 
         // Deposit FA back to user's primary store
         let user_fa_store = primary_fungible_store::primary_store(user_addr, locked_fa.dxlyn_fa_metadata);

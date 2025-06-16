@@ -15,19 +15,19 @@ module dxlyn::dxlyn_swap {
 
     const DXLYN_FA_SEED: vector<u8> = b"DXLYN";
 
-    /// insufficient FA balance
-    const ERROR_INSUFFICIENT_FA_BALANCE: u64 = 100;
-    /// NO locked FA for user
-    const ERROR_NO_LOCKED_FA: u64 = 101;
-    /// insufficient locked FA balance
-    const ERROR_INSUFFICIENT_LOCKED_FA: u64 = 102;
-    /// insufficient DXLYN balance
-    const ERROR_INSUFFICIENT_DXLYN: u64 = 103;
-    /// already initialized
-    const ERROR_ALREADY_INITIALIZED: u64 = 104;
-
     /// not admin 
-    const ERROR_NOT_ADMIN: u64 = 1000;
+    const ERROR_NOT_ADMIN: u64 = 100;
+    /// insufficient FA balance
+    const ERROR_INSUFFICIENT_FA_BALANCE: u64 = 101;
+    /// NO locked FA for user
+    const ERROR_NO_LOCKED_FA: u64 = 102;
+    /// insufficient locked FA balance
+    const ERROR_INSUFFICIENT_LOCKED_FA: u64 = 103;
+    /// insufficient DXLYN balance
+    const ERROR_INSUFFICIENT_DXLYN: u64 = 104;
+    /// already initialized
+    const ERROR_ALREADY_INITIALIZED: u64 = 105;
+
 
     #[event]
     struct SwapEvent has store, drop, copy {

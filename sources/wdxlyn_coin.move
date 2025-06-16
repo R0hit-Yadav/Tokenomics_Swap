@@ -6,7 +6,7 @@ module dxlyn::wdxlyn_coin {
 
     struct DXLYN has store, drop {}
 
-    const ERROR_NOT_ADMIN: u64 = 1000;
+    const ERROR_NOT_ADMIN: u64 = 100;
 
     const DEV: address = @dev;
 

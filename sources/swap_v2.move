@@ -27,6 +27,8 @@ module dxlyn::dxlyn_swap {
     const ERROR_INSUFFICIENT_DXLYN: u64 = 0x5;
     /// already initialized
     const ERROR_ALREADY_INITIALIZED: u64 = 0x6;
+    /// error code for zero amount
+    const ERROR_ZERO_AMOUNT: u64 = 0x7;
 
 
     #[event]
@@ -68,6 +70,8 @@ module dxlyn::dxlyn_swap {
     public entry fun swap_fa_to_dxlyn(user: &signer, amount: u64) acquires LockedFADxlyn {
         let admin_addr = @dev;
         let user_addr = signer::address_of(user);
+
+        assert!(amount > 0, ERROR_ZERO_AMOUNT);
 
         // DXLYN coin registration
         if (!coin::is_account_registered<wdxlyn_coin::DXLYN>(user_addr)) {
@@ -118,6 +122,8 @@ module dxlyn::dxlyn_swap {
     public entry fun swap_dxlyn_to_fa(user: &signer, amount: u64) acquires LockedFADxlyn {
         let admin_addr = @dev;
         let user_addr = signer::address_of(user);
+
+        assert!(amount > 0, ERROR_ZERO_AMOUNT);
         let locked_fa = borrow_global_mut<LockedFADxlyn>(admin_addr);
 
         // Check locked FA exists for user
